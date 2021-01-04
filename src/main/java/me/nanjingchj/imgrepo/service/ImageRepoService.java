@@ -26,6 +26,15 @@ public class ImageRepoService {
         }
     }
 
+    public ImageItem getImageById(String id) {
+        Optional<ImageItem> img = imageRepo.findById(id);
+        if (img.isPresent()) {
+            return img.get();
+        } else {
+            throw new NoSuchElementException("Image Not Found");
+        }
+    }
+
     public void addImage(ImageItem item) {
         imageRepo.save(item);
     }
