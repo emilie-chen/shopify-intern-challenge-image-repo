@@ -4,6 +4,7 @@ import me.nanjingchj.imgrepo.dto.SessionStatusDto;
 import me.nanjingchj.imgrepo.model.User;
 import me.nanjingchj.imgrepo.repository.UserRepo;
 import me.nanjingchj.imgrepo.service.UserService;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,6 +25,7 @@ public class UserController {
 
     @RequestMapping(value = "/login",  method = RequestMethod.PUT)
     public void createUserOrLogIn(@RequestParam("username") String username, @RequestParam("passwordHash") String passwordHash, HttpServletResponse response) {
+        passwordHash = DigestUtils.sha256Hex(passwordHash);
         // check if user already exists
         // if user doesn't exist, sign up before logging in
         if (!userService.userExists(username)) {
