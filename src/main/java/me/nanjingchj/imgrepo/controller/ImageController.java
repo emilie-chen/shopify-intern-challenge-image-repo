@@ -15,15 +15,15 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Base64;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/api/image")
 public class ImageController {
+    private static final Set<String> ALLOWED_FILE_TYPES = Stream.of("png", "jpg", "jpeg", "bmp").collect(Collectors.toUnmodifiableSet());
+
     private final ImageRepoService imageRepoService;
 
     @Autowired
@@ -31,8 +31,26 @@ public class ImageController {
         this.imageRepoService = imageRepoService;
     }
 
+    private static String getFileExtensionFromFileName(String fileName) {
+        if (!fileName.contains(".")) {
+            return "";
+        } else {
+            String[] segments = fileName.split("\\.");
+            return segments[segments.length - 1].toLowerCase();
+        }
+    }
+
+    private static boolean isFileTypeAllowed(String fileType) {
+        return ALLOWED_FILE_TYPES.contains(fileType);
+    }
+
     @RequestMapping(path = "/upload", method = RequestMethod.POST)
     public ImageUploadResponseDto uploadImage(@RequestParam("file") MultipartFile file, HttpServletResponse response) {
+        // ensure that the file has an image extension name
+        if (!isFileTypeAllowed(getFileExtensionFromFileName(Objects.requireNonNull(file.getOriginalFilename())))) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return new ImageUploadResponseDto("");
+        }
         try {
             ImageItem item = new ImageItem(file.getOriginalFilename(), file.getBytes());
             imageRepoService.addImage(item);
