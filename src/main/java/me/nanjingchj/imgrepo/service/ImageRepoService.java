@@ -1,10 +1,12 @@
 package me.nanjingchj.imgrepo.service;
 
+import me.nanjingchj.imgrepo.dto.ImageItemDto;
 import me.nanjingchj.imgrepo.model.ImageItem;
 import me.nanjingchj.imgrepo.repository.ImageRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -17,13 +19,8 @@ public class ImageRepoService {
         this.imageRepo = imageRepo;
     }
 
-    public ImageItem getImageByName(String name) {
-        Optional<ImageItem> img = imageRepo.findByName(name);
-        if (img.isPresent()) {
-            return img.get();
-        } else {
-            throw new NoSuchElementException("Image Not Found");
-        }
+    public List<ImageItem> getAllImagesByName(String name) {
+        return imageRepo.findAllByName(name);
     }
 
     public ImageItem getImageById(String id) {
@@ -52,5 +49,4 @@ public class ImageRepoService {
         Optional<ImageItem> img = imageRepo.findByName(name);
         return img.isPresent();
     }
-
 }

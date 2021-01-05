@@ -1,6 +1,7 @@
 package me.nanjingchj.imgrepo.controller;
 
 import lombok.Getter;
+import me.nanjingchj.imgrepo.dto.ImageItemDto;
 import me.nanjingchj.imgrepo.dto.ImageUploadResponseDto;
 import me.nanjingchj.imgrepo.model.ImageItem;
 import me.nanjingchj.imgrepo.service.ImageRepoService;
@@ -15,7 +16,10 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Base64;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/image")
@@ -60,21 +64,13 @@ public class ImageController {
     }
 
     @RequestMapping(path = "/name/{name}", method = RequestMethod.GET)
-    public ResponseEntity<Resource> getImageByName(@PathVariable("name") String name, HttpServletResponse response) {
-        ImageItem img;
+    public List<ImageItemDto> getImageByName(@PathVariable("name") String name, HttpServletResponse response) {
         try {
-            img = imageRepoService.getImageByName(name);
+            return imageRepoService.getAllImagesByName(name).stream().map(ImageItemDto::new).collect(Collectors.toList());
         } catch (NoSuchElementException e) {
             e.printStackTrace();
-            return ResponseEntity.notFound().build();
         }
-        ByteArrayResource imageRes = new ByteArrayResource(img.getImage());
-        response.setContentType("application/x-msdownload");
-        response.setHeader("Content-disposition", "attachment; filename=" + img.getName());
-        return ResponseEntity
-                .ok()
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(imageRes);
+        return new LinkedList<>();
     }
 
     @RequestMapping(path = "/delete/{id}", method = RequestMethod.DELETE)
@@ -86,4 +82,5 @@ public class ImageController {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         }
     }
+
 }
