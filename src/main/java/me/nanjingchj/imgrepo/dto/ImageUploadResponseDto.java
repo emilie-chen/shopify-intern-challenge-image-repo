@@ -1,10 +1,8 @@
 package me.nanjingchj.imgrepo.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Value;
 
-@AllArgsConstructor
+@Value
 public class ImageUploadResponseDto {
-    @Getter
-    private final String id;
+    String id;
 }

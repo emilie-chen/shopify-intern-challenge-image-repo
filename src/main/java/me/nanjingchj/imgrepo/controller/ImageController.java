@@ -28,7 +28,7 @@ public class ImageController {
     }
 
     @RequestMapping(path = "/upload", method = RequestMethod.POST)
-    public ImageUploadResponseDto uploadImage(@RequestParam("file") MultipartFile file, HttpServletResponse response) throws IOException {
+    public ImageUploadResponseDto uploadImage(@RequestParam("file") MultipartFile file, HttpServletResponse response) {
         try {
             ImageItem item = new ImageItem(file.getOriginalFilename(), file.getBytes());
             imageRepoService.addImage(item);
@@ -57,5 +57,33 @@ public class ImageController {
                 .ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(imageRes);
+    }
+
+    @RequestMapping(path = "/name/{name}", method = RequestMethod.GET)
+    public ResponseEntity<Resource> getImageByName(@PathVariable("name") String name, HttpServletResponse response) {
+        ImageItem img;
+        try {
+            img = imageRepoService.getImageByName(name);
+        } catch (NoSuchElementException e) {
+            e.printStackTrace();
+            return ResponseEntity.notFound().build();
+        }
+        ByteArrayResource imageRes = new ByteArrayResource(img.getImage());
+        response.setContentType("application/x-msdownload");
+        response.setHeader("Content-disposition", "attachment; filename=" + img.getName());
+        return ResponseEntity
+                .ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(imageRes);
+    }
+
+    @RequestMapping(path = "/delete/{id}", method = RequestMethod.DELETE)
+    public void deleteImage(@PathVariable("id") String id, HttpServletResponse response) {
+        if (imageRepoService.hasImageId(id)) {
+            imageRepoService.deleteImageById(id);
+            response.setStatus(HttpServletResponse.SC_OK);
+        } else {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        }
     }
 }

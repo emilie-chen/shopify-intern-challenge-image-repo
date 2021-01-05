@@ -38,4 +38,19 @@ public class ImageRepoService {
     public void addImage(ImageItem item) {
         imageRepo.save(item);
     }
+
+    public void deleteImageById(String id) {
+        imageRepo.deleteById(id);
+    }
+
+    public boolean hasImageId(String id) {
+        Optional<ImageItem> img = imageRepo.findById(id);
+        return img.isPresent();
+    }
+
+    public boolean hasImageName(String name) {
+        Optional<ImageItem> img = imageRepo.findByName(name);
+        return img.isPresent();
+    }
+
 }
