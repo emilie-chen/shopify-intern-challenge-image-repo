@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.Cookie;
 import java.util.*;
 
 @Service
@@ -60,25 +61,31 @@ public class UserService {
         return null;
     }
 
-    public boolean isUserLoggedInByName(String name) {
-        if (!usernameToToken.containsKey(name)) {
+    public boolean isUserLoggedInById(String id) {
+        if (!usernameToToken.containsKey(id)) {
             return false;
         }
-        String token = usernameToToken.get(name);
+        String token = usernameToToken.get(id);
         return isUserLoggedInByToken(token);
+    }
+
+    public Cookie createSessionCookie(String token) {
+        Cookie cookie = new Cookie("token", token);
+        cookie.setMaxAge((int) TIMEOUT);
+        return cookie;
     }
 
     public boolean isUserLoggedInByToken(String token) {
         if (!userLoginSessions.containsKey(token)) {
             return false;
         }
-        Pair<String, Date> usernameAndExpiryDate = userLoginSessions.get(token);
+        Pair<String, Date> idAndExpiryDate = userLoginSessions.get(token);
         Date currentTime = new Date();
-        if (usernameAndExpiryDate.getSecond().after(currentTime)) {
+        if (idAndExpiryDate.getSecond().after(currentTime)) {
             return true;
         }
         userLoginSessions.remove(token);
-        String name = usernameAndExpiryDate.getFirst();
+        String name = idAndExpiryDate.getFirst();
         usernameToToken.remove(name);
         return false;
     }
@@ -92,10 +99,14 @@ public class UserService {
      * set the token expiry time to current time plus 15 minutes, if the user is logged in
      * @param token session ID
      */
-    public void refreshTokenExpiry(String token) {
+    public void  refreshTokenExpiry(String token) {
         assert isUserLoggedInByToken(token);
-        Pair<String, Date> usernameAndExpiryDate = userLoginSessions.get(token);
-        Pair<String, Date> usernameAndNewExpiry = Pair.of(usernameAndExpiryDate.getFirst(), new Date(new Date().getTime() + 1000 * TIMEOUT));
-        userLoginSessions.put(token, usernameAndNewExpiry);
+        Pair<String, Date> idAndExpiryDate = userLoginSessions.get(token);
+        Pair<String, Date> idAndNewExpiry = Pair.of(idAndExpiryDate.getFirst(), new Date(new Date().getTime() + 1000 * TIMEOUT));
+        userLoginSessions.put(token, idAndNewExpiry);
+    }
+
+    public String getIdFromToken(String token) {
+        return userLoginSessions.get(token).getFirst();
     }
 }

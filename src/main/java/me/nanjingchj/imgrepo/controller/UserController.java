@@ -24,8 +24,8 @@ public class UserController {
     }
 
     @RequestMapping(value = "/login",  method = RequestMethod.PUT)
-    public void createUserOrLogIn(@RequestParam("username") String username, @RequestParam("passwordHash") String passwordHash, HttpServletResponse response) {
-        passwordHash = DigestUtils.sha256Hex(passwordHash);
+    public void createUserOrLogIn(@RequestParam("username") String username, @RequestParam("password") String password, HttpServletResponse response) {
+        String passwordHash = DigestUtils.sha256Hex(username + password);
         // check if user already exists
         // if user doesn't exist, sign up before logging in
         if (!userService.userExists(username)) {
@@ -37,16 +37,15 @@ public class UserController {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
-        Cookie cookie = new Cookie("token", token);
-        cookie.setMaxAge((int) userService.TIMEOUT);
-        response.addCookie(cookie);
+
+        response.addCookie(userService.createSessionCookie(token));
     }
 
     @RequestMapping(value = "/status/{session-id}", method = RequestMethod.GET)
-    public SessionStatusDto getSessionStatus(@PathVariable("session-id") String id, HttpServletResponse response) {
+    public SessionStatusDto getSessionStatus(@PathVariable("session-id") String token, HttpServletResponse response) {
         SessionStatusDto status;
-        if (userService.isUserLoggedInByToken(id)) {
-            status = new SessionStatusDto(true, userService.getSessionExpiry(id));
+        if (userService.isUserLoggedInByToken(token)) {
+            status = new SessionStatusDto(true, userService.getSessionExpiry(token));
         } else {
             status = new SessionStatusDto(false, null);
         }
