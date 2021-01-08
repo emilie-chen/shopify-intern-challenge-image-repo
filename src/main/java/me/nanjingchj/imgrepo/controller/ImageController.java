@@ -63,7 +63,9 @@ public class ImageController {
             return new ImageUploadResponseDto("");
         }
         try {
-            ImageItem item = new ImageItem(file.getOriginalFilename(), id, isPublic, Set.of(id), file.getBytes());
+            Set<String> idSet = new HashSet<>();
+            idSet.add(id);
+            ImageItem item = new ImageItem(file.getOriginalFilename(), id, isPublic, idSet, file.getBytes());
             imageRepoService.addImage(item);
             response.setStatus(HttpServletResponse.SC_OK);
             return new ImageUploadResponseDto(item.getId());
